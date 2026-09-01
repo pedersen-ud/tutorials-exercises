@@ -26,24 +26,24 @@
 # Part 1. GitHub terminology ----------------------------------------------
 
 # 1. What is the difference between clone and pull?
-#
+#Clone is similar to a copy where you duplicate materials from one place to another, and pull is the action of moving those materials from Git to R 
 
 
 # 2. What is the difference between commit and push?
-#
+#Commit is saving your work thus far and selecting what specifically you want to move and save on GitHub, and push is the action of actually moving those materials from R to GitHub
 
 
 # 3. Which repository contains the instructor's original course materials?
-#
+#The course hub repository on contains the original materials and you can only pull those materials off of Git and not edit them within that repository
 
 
 # 4. Which repository should contain your completed tutorials and exercises?
-#
+#Your own personal turorials and exercises repository on your GitHub profile
 
 
 # 5. What should you do before beginning work in a repository that you have
 #    already cloned to your computer?
-#
+#You should open the project through the Rstudio project rather than trying to find it through a blank R tab, so that it knows exactly where you are trying to work
 
 
 # Part 2. Review your changes ---------------------------------------------
