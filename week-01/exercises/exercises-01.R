@@ -98,7 +98,7 @@
 
 # Answer the following question:
 #
-# One Git concept I understand better now is:
+# One Git concept I understand better now is:how to move and save materials between R and Git so that they are easily accessible 
 
 
 
