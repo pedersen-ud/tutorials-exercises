@@ -32,13 +32,24 @@
 # Part 1: across() ####
 # ============================================================
 # 1. What are the median bill length, bill depth, and flipper length of penguins on each island?
+	glimpse(penguins)
 
 # For each island, calculate the median bill_length_mm,
 # bill_depth_mm, and flipper_length_mm using across().
 # Ignore missing values. Name the columns with the original name
 # followed by _median. Save the result as island_medians.
 
-
+island_medians <- penguins |>
+  group_by(island) |>
+  summarize(
+    across(
+      ends_with("_mm"),
+      ~ median(.x, na.rm = T),
+      .names = "{.col}_median"
+    )
+  )
+  
+island_medians
 	
 # 2. What are the mean and standard deviation of bill length and body mass for female penguins of each species?
 
@@ -48,7 +59,20 @@
 # Use names such as mean_bill_length_mm and sd_body_mass_g.
 # Save the result as female_measurements.
 
-	
+female_measurements <- penguins |>
+  filter(sex == "female") |>
+  group_by(species) |>
+  summarize(
+    across(
+      c(bill_length_mm, body_mass_g),
+      list(
+        sd = ~ sd(.x, na.rm = T),
+        mean = ~ mean(.x, na.rm = T)
+      ),
+      .names = "{.fn}_{.col}"
+    )
+  )
+  female_measurements
 
 # ============================================================
 # Part 2: count() ####
@@ -58,8 +82,11 @@
 # Using one pipeline, keep observations from 2008 and 2009
 # and count observations for each species-year combination.
 # Save the result as species_year_counts.
-
-	
+species_year_counts <- penguins |>
+    filter(year %in% c(2008, 2009)) |>
+    count(species, year)
+  
+species_year_counts
 
 # 4. Create a new summarized dataset that counts penguin observations for each combination of species and sex.
 # Save as "penguin_counts".
@@ -70,7 +97,9 @@
 # rather than one individual penguin.
 # Missing sex values are included as a separate group.
 	
-
+penguin_counts <- penguins |>
+  count(species, sex, name = "n_penguins")
+penguin_counts  
 
 # 5. How many penguins of each species are represented in penguin_counts? What would count(species) count if you omitted wt =?
 
@@ -79,8 +108,9 @@
 # Save the result as species_totals.
 # In a comment, explain what count(species) would count without wt =.
 
-
-
+species_totals <- penguin_counts |>
+  count(species, wt = n_penguins)
+species_totals
 
 # ============================================================
 # Part 3: case_when() ####
@@ -91,8 +121,17 @@
 # flipper_length_mm < 190 -> "short"
 # Ensure you leave missing flipper lengths as missing categories and save the result as penguin_flipper_size.
 
-	
-
+penguin_flipper_size <- penguins |>
+  select(island, species, flipper_length_mm) |>
+  mutate(
+    flipper_size = case_when(
+      flipper_length_mm >= 210 ~ "long",
+      flipper_length_mm >= 190 ~ "medium",
+      flipper_length_mm < 190 ~ "short",
+      .default = NA_character_
+    )
+  )
+penguin_flipper_size
 
 # 7. How many penguins of each species fall into each flipper-size category? What does an NA in flipper_size mean?
 
@@ -100,8 +139,9 @@
 # by species and flipper_size. Save the result as flipper_counts.
 # In a comment, explain what an NA in flipper_size means.
 
-	
-
+flipper_counts <- penguin_flipper_size |>
+  count(species, flipper_size)
+flipper_counts
 
 # ============================================================
 # Part 4: joins ####
@@ -118,7 +158,8 @@
 
 	flights_small <- flights |>
 	  select(year, time_hour, origin, dest, tailnum, carrier)
-
+flights_small
+glimpse(flights_small)
 
 # 8. What airline operated each flight?
 #
@@ -132,8 +173,10 @@
 # In a comment, identify the key and explain why the same carrier
 # code can appear in multiple rows of flights_small.
 
-
-
+flights_airlines <- flights_small |>
+  left_join(airlines, join_by(carrier))
+  
+glimpse(flights_airlines)
 
 # 9. What is the full name of each flight's destination airport?
 #
@@ -147,8 +190,14 @@
 #
 # In a comment, explain what an NA in destination_name means.
 
+flights_destination <- flights_small |>
+  left_join(
+    airports |>
+      select(faa, destination_name = name),
+    join_by(dest == faa)
+  )
 
-
+flights_destination
 
 #### The next two questions use a filtering join. ####
 	
@@ -164,7 +213,9 @@
 #
 # In a comment, explain whether semi_join() adds flight columns.
 
-	
+airlines_used <- airlines |>
+  semi_join(flights_small, join_by(carrier))
+airlines_used
 
 # 11. Which aircraft identifiers in flights_small are missing
 # from the planes dataset?
@@ -178,8 +229,12 @@
 # Finally, use distinct(tailnum) to keep each unmatched
 # identifier only once.
 # Save the result as unmatched_tail_numbers.
-
-
+unmatched_tail_numbers <- flights_small |>
+  filter(!is.na(tailnum)) |>
+  anti_join(planes, join_by(tailnum)) |>
+  distinct(tailnum)
+        
+unmatched_tail_numbers
 # ============================================================
 # Part 5: strings ####
 # ============================================================
@@ -201,16 +256,23 @@
 # b. convert species to title case with str_to_title()
 # c. create a column called `state` from the first two characters of sample_id with str_sub()
 # Save the result as fish_clean.
+fish_clean <- fish_records |>
+  mutate(
+    species = str_trim(species),
+    species = str_to_title(species),
+    state = str_sub(sample_id, 1,2)
+  )
 
-
-
+fish_clean
 # 13. Starting with fish_clean, create contains_shark using
 # str_detect(): TRUE if species contains "Shark", FALSE otherwise.
 # Then keep only shark records (if TRUE). Save the result as shark_records.
 
+shark_records <- fish_clean |>
+  mutate(contains_shark = str_detect(species, "Shark")) |>
+  filter(contains_shark)
 
-
-
+shark_records
 # ============================================================
 # Part 6: regular expressions ####
 # ============================================================
@@ -221,15 +283,21 @@
 # Hint: ^ marks the start of a string; | means OR.
 # Make sure both alternatives are anchored to the beginning.
 
-
+de_nj_records <- fish_clean |>
+  filter(str_detect(sample_id, "^DE|NJ"))
+de_nj_records
 
 # 15. Starting with fish_clean, extract the numeric portion
 # of sample_id into a new column called sample_number using str_extract().
 # Save the result as fish_numbers.
 # Hint: [0-9]+ means one or more digits.
 # Check the class of sample_number. Is it numeric or character?
-
-
+fish_numbers <- fish_clean |>
+  mutate(
+    sample_number = str_extract(sample_id, "[0-9]+")
+  )
+fish_numbers
+class(fish_numbers$sample_number)
 # ============================================================
 # Part 7: dates and times ####
 # ============================================================
@@ -250,8 +318,14 @@
 	    "2026-07-10 21:45:00"
 	  )
 	)
-
-
+sampling_times_clean <- sampling_times |>
+  mutate(
+    datetime = ymd_hms(datetime, tz = "America/New_York"),
+    year = year(datetime),
+    month = month(datetime, label = T),
+    hour = hour(datetime)
+  )
+sampling_times_clean
 # 17. Starting with sampling_dates (code for dataframe below), create sample_date from
 # year, month, and day using make_date(). Save as sampling_dates_clean.
 # Check the class of sample_date. In a comment, explain how it differs
@@ -262,9 +336,11 @@
 	  month = c(11, 2, 7),
 	  day = c(12, 18, 3)
 	)
-
-
-# ============================================================
+sampling_dates_clean <- sampling_dates |>
+  mutate(sample_date = make_date(year, month,day))
+sampling_dates_clean
+class(sampling_dates_clean)
+# ====# ====# ============================================================
 # Part 8: rounding, logarithms, and factors
 # ============================================================
 
@@ -272,12 +348,17 @@
 # Calculate mean penguin body mass in kilograms, ignoring
 # missing values, and round it to two decimal places.
 # Save the number as mean_body_mass_kg.
+mean_body_mass_kg <- round(
+  mean(penguins$body_mass_g, na.rm = T) / 1000,
+digits = 2)
 
-
+mean_body_mass_kg
 # 19. Calculate log(100) and log10(100).
 # In comments: Are the results the same? What base does each use?
 
-
+log(100)
+log10(100)
+#no the results are not the same because log() is the natural log with base e not 10
 # ============================================================
 # Factor levels
 # ============================================================
@@ -289,8 +370,11 @@
 # small, medium, large. Save it as size_class_factor.
 # Use levels() to check the order.
 
-
-
+size_class_factor <- factor(
+  size_class,
+  levels = c("small", "medium", "large")
+)
+levels(size_class_factor)
 # ============================================================
 # Part 9: integrated challenge
 # ============================================================
@@ -325,6 +409,21 @@
 # In a comment, explain what one row of survey_summary represents.
 # Check that the sum of n equals the number of rows in survey_data.
 
+survey_summary <- survey_data |>
+  mutate(
+    species = str_trim(species),
+    species = str_to_title(species),
+    datetime = ymd_hms(datetime, tz = "America/New_York"),
+    state = str_sub(sample_id, 1, 2),
+    month = month(datetime, label = T),
+    size_class = case_when(
+      length_cm >= 150 ~ "large",
+      length_cm < 150 ~ "small",
+      .default = NA_character_
+    )
+  ) |>
+  count(state, species, month, size_class)
+survey_summary
 
 # ------------------------------------------------------------
 # Final check
