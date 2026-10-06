@@ -420,8 +420,7 @@ survey_summary <- survey_data |>
       length_cm >= 150 ~ "large",
       length_cm < 150 ~ "small",
       .default = NA_character_
-    )
-  ) |>
+    )) |>
   count(state, species, month, size_class)
 survey_summary
 
