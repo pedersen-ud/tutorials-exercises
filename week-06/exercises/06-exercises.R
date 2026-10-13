@@ -46,16 +46,22 @@
 	
 	# Write your code here:
 	
-	
+p_scatter <- ggplot(diamonds_plot, aes(x= carat, y= price, color = cut)) +
+  geom_point(alpha= 0.5,
+             size= 1.5) +
+  labs (
+    title= "Carat vs Price of Diamonds",
+    x= "Carat",
+    y= "Price",
+    color= "Cut"
+  ) + 
+  theme_classic() 
 
+p_scatter
 
 	# Your response to the questions here:
-	# Price generally increases with carat, although prices vary among diamonds 
-	# of similar carat. 
-	
-	# Mny acceptable answers, e.g., color is mapped to cut; 
-	# alpha and size are set to fixed values. 
-
+	# Price tends to increase along with the carat and nicer cuts also tend to equal a higher price
+	# the color is related to the cut of the diamond and the ideal cuts are clearly visible on the plot
 	
 	# 2. Explore a distribution 
 
@@ -70,12 +76,40 @@
 
 	# Write your code here:
 	
-	
+price_hist <- ggplot(diamonds_plot,
+                     aes(x=price)) +
+  geom_histogram(
+    binwidth= 500,
+    fill = "steelblue",
+    color = "white") +
+  labs(
+    x= "Price (USD)",
+    y= "Number of Diamonds",
+    title= "Distribution of Diamond Prices"
+  ) +
+  theme_classic()
 
+price_hist
 
+price_hist_big <- ggplot(diamonds_plot,
+                         aes(x=price)) +
+  geom_histogram(
+    binwidth = 1000,
+    fill = "steelblue",
+    color = "white") +
+  labs(
+    x= "Price (USD)",
+    y= "Number of Diamonds",
+    title= "Distribution of Diamond Prices"
+  ) +
+  theme_classic()
+price_hist_big
 
 	# Your response:
-	# Wider bins produce fewer, broader bars and show less detail. 
+	# The wider bins make fewer, bigger bars, but shows less detail and a broader distribution
+
+  #I like the bigger bins more for looking at the distribution because there is one, clearly larger bin, which gives a more obvious range and gives
+  #you more to talk about with the data
 
 	# 3. Compare groups with two layers 
 	
@@ -93,14 +127,27 @@
 	# Write one sentence explaining what the jittered points add to the boxplot.
 
 	# Write your code here:
-	
+
+p_box <- ggplot(diamonds_plot,
+                aes(x=cut, y=price)) +
+  geom_boxplot(aes(fill = cut)) + 
+  geom_jitter(
+    width= 0.15,
+    height= 0,
+    alpha= 0.15,
+    color= "grey30"
+  ) + 
+  guides(fill="none") +
+  labs(
+    title= "Diamond Prices by Cut",
+    x= "Cut",
+    y= "Price") +
+  theme_classic()
+
+p_box
 
 	# Your response:
-	# The points show individual prices and where observations are concentrated, 
-	# alongside the boxplot summary. 
-	# Height = 0 keeps the plotted prices unchanged vertically. 
-	# The default boxplot also draws outliers, so some observations appear in both layers; 
-	# suppressing outliers is not required for this exercise.
+	# the jittered points allow you to see the rest of the dataset thats not included in the middle quartile on the boxplot
 
 	
 # 4. Compare color and facets 
@@ -114,14 +161,20 @@
 	# What is easier to see when cut categories have their own panels?
 
 	# Write your code here:
-
+facet_scatter <- ggplot(diamonds_plot, aes(x=carat, y=price)) +
+  geom_point(alpha= 0.4, color = "blue") +
+  facet_wrap(~ cut) +
+  labs(
+    title= "Diamond Price by Cut",
+    x= "Carat",
+    y= "Price (USD)"
+  ) +
+    theme_minimal()
 	
-	
+facet_scatter	
 	# Your response:
-	# Facets reduce overlap among cut categories and make within-category 
-	# patterns easier to inspect. 
-	# The original color plot allows direct comparison of categories in the same panel.
-	# Accept other accurate comparisons.
+	# Having the cuts separate allows you to see a trend in each cut on its own plot rather than picking out each cut from 
+#a whole dataset on one singular plot
 
 	# 5. Assemble and save a figure 
 	
@@ -138,7 +191,21 @@
 	# Hint: use `p_scatter | p_box` for the side-by-side layout.
 	
 	# Write your code here
-	
+diamond_figure <- (p_scatter | p_box)	+
+  plot_annotation(
+    title= "Price Patterns of Diamonds"
+  )
+
+diamond_figure
+
+ggsave(
+  filename = "diamond_figure.png",
+  plot= diamond_figure,
+  width = 10,
+  height = 5,
+  units = "in",
+  dpi = 300
+)
 
 	# 6. Practice `facet_grid()` with two grouping variables.
 	
@@ -156,9 +223,19 @@
 	# Explain your choice in one sentence.
 	
 	# Write your code here:
-	
+facet_practice <- ggplot(diamonds_plot, aes(x= carat, y= price)) +
+  geom_point(alpha = 0.5, color = "red") +
+  facet_grid(cut ~ color) +
+  labs(
+    title = "Price by Color and Cut",
+    x= "Carat",
+    y= "Price (USD)"
+  ) +
+  theme_minimal()
 
+	
+facet_practice
 	# Write your answer here:
-	# The larger grid contains 35 panels and can be crowded on a small screen. 
-	# Either preference is acceptable with an explanation.
+	# The smaller panel is easier to read since you're not getting overwhelmed by the amount of panels
+  #On the larger plot theres too much going on on each individual plot which make sit confusing and hard to pick out a trend between the panels
 	
